@@ -21,3 +21,11 @@ class Choice(models.Model):
     votes = models.IntegerField(default=0)
     def __str__(self):
         return self.choice_text
+
+
+class Comment(models.Model):
+    comment_name=models.CharField(max_length=50)
+    comment_text = models.CharField(max_length=200)  
+    def __str__(self):
+        return self.comment_text
+    
