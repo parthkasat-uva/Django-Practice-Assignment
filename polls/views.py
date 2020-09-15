@@ -22,7 +22,7 @@ from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 
-from .models import Choice, Question
+from .models import Choice, Question, Comment
 
 
 class IndexView(generic.ListView):
@@ -51,6 +51,7 @@ class DetailView(generic.DetailView):
 class ResultsView(generic.DetailView):
     model = Question
     template_name = 'polls/results.html'
+    
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     try:
@@ -68,3 +69,42 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+    
+class CommentsView(generic.ListView):
+    model = Comment
+    template_name = 'polls/comments.html'
+    context_object_name = 'latest_comment_list'
+    def get_queryset(self):
+        """
+        Excludes any questions that aren't published yet.
+        """
+        return Comment.objects.all()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['name']=''
+        context['text']=''
+        return context
+
+def add(request):
+    name=request.POST.get('comment_name')
+    text=request.POST.get('comment')
+
+    if(name and text):
+        print("entered")
+        model = Comment(comment_name=name,comment_text=text)
+        model.save()
+        return HttpResponseRedirect(reverse('polls:comments'))
+    else:
+        return HttpResponseRedirect(reverse('polls:comments'),{
+            'error_message': "You didn't fill in a field.",
+        })
+ 
+
+class CommentsListView(generic.ListView):
+    template_name = 'polls/list.html'
+    context_object_name = 'latest_comment_list'
+    def get_queryset(self):
+        """
+        Excludes any questions that aren't published yet.
+        """
+        return Comment.objects.all()
